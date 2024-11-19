@@ -1,26 +1,22 @@
 from flask import Flask, render_template, jsonify
+from database import load_jobs_from_db
+import os
+from dotenv import load_dotenv
+
+# load env variables
+load_dotenv()
 
 app = Flask(__name__)
 
-JOBS = [
-    {'title': 'Data engineer',
-     'location': 'Banglore, India',
-     'salary': 'Rs 10,00,000'},
-     {'title': 'Data scientist',
-     'location': 'Delhi, India',
-     'salary': 'Rs 10,00,000'},
-     {'title': 'Frontend Engineer',
-     'location': 'Remote',
-     'salary': '$ 60,000'},
-]
-
 @app.route("/")
 def home():
-    return render_template("home.html", jobs=JOBS)  
+    jobs = load_jobs_from_db()
+    return render_template("home.html", jobs=jobs)  
 
 @app.route("/api/jobs")
 def list_jobs():
-    return jsonify(JOBS)
+    jobs = load_jobs_from_db()
+    return jsonify(jobs)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug= os.getenv('FLASK_ENV') == 'development')
