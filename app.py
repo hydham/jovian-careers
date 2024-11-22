@@ -1,7 +1,8 @@
-from flask import Flask, render_template, jsonify
-from database import load_jobs_from_db, load_job_from_db
+from flask import Flask, render_template, jsonify, request
+from database import load_jobs_from_db, load_job_from_db, add_application_to_db, list_applications
 import os
 from dotenv import load_dotenv
+import models
 
 # load env variables
 load_dotenv()
@@ -18,12 +19,26 @@ def list_jobs():
     jobs = load_jobs_from_db()
     return jsonify(jobs)
 
-@app.route("/job/<int:id>")
+@app.route("/job/<id>")
 def show_job(id):
     job = load_job_from_db(id)
-    if job is None:
-        return jsonify({"message": "Job doesn't exist"})
+    if not job:
+        return "Page not found", 404
     return render_template('jobpage.html', job=job)
+
+@app.route("/job/<id>/apply", methods=['POST'])
+def apply_job(id):
+    job = load_job_from_db(id)
+    data = request.form
+    add_application_to_db(id, data)
+    return render_template('application_submitted.html', 
+                           data=data, 
+                           job=job)
+
+@app.route("/api/applications")
+def show_applications():
+    data = list_applications()
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug= os.getenv('FLASK_ENV') == 'development')
